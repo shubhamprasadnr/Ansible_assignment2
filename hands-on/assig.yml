@@ -1,0 +1,28 @@
+---
+- name: Install Nginx on web servers
+  hosts: web1
+  become: yes
+  tasks:
+    - name: Ensure Nginx is installed
+      apt:
+        name: nginx
+        state: present
+      notify: restart nginx
+
+- name: Touch the same file, but add/remove some permissions
+  ansible.builtin.file:
+    path: /tmp
+    state: touch
+  notify: restart nginx service
+
+  handlers:
+    - name: restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+
+    - name: restart nginx service
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+...

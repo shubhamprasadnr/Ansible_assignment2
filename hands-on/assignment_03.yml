@@ -1,0 +1,37 @@
+---
+- name: Install Nginx and Configure Log Rotation
+  hosts: all # Replace with the group name of your servers in the inventory
+  become: yes
+  tasks:
+    - name: Ensure Nginx is installed
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Configure log rotation for Nginx logs
+      copy:
+        dest: /etc/logrotate.d/nginx
+        content: |
+          /var/log/nginx/*.log {
+              daily
+              rotate 7
+              size 1G
+              missingok
+              compress
+              delaycompress
+              notifempty
+              create 0640 www-data adm
+              sharedscripts
+              postrotate
+                  [ -s /run/nginx.pid ] && kill -USR1 `cat /run/nginx.pid`
+              endscript
+          }
+      notify: Restart Nginx
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+...

@@ -1,0 +1,14 @@
+---
+- name: Create users
+  hosts: all
+  become: yes
+  vars_files:
+    - /home/ubuntu/variable.yml
+  tasks:
+    - name: Create users
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ user_name }}"
+...
+

@@ -1,0 +1,16 @@
+---
+- name: Find a file and print message
+  hosts: all
+  tasks:
+    - name: Find the file
+      find:
+        paths: /home/ubuntu/shubham  
+      ignore_errors: yes
+
+
+     - name: Print failure message
+         debug:
+           msg: "Failure: The file was not found." 
+         when: file path is failed
+
+... 
