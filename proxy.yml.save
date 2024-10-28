@@ -13,8 +13,23 @@
       apt:
         name: apache2
         state: present
-
+    
     - name: Configure Apache2 port
+      copy:
+        dest: /etc/apache2/ports.conf
+        content: |
+              # If you change this to Listen 8080, you should also update any virtual hosts.
+              Listen 8080
+
+              <IfModule ssl_module>
+                 Listen 443
+              </IfModule>
+
+              <IfModule mod_gnutls.c>
+                 Listen 443
+              </IfModule>
+
+    - name: Configure Apache2 configuration
       copy:
         dest: /etc/apache2/sites-available/reverse-proxy.conf
         content: |
@@ -63,7 +78,7 @@
         name: nginx
         state: reloaded
 
-    - name: reload nginx
+    - name: reload nginx1
       ansible.builtin.service:
         name: nginx1
         state: reloaded
