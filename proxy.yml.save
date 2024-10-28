@@ -1,0 +1,70 @@
+---
+- name: Implementing setup of reverse proxy
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Install Apache2
+      apt:
+        name: apache2
+        state: present
+
+    - name: Configure Apache2 port
+      copy:
+        dest: /etc/apache2/sites-available/reverse-proxy.conf
+        content: |
+          <VirtualHost *:8080>
+              DocumentRoot /var/www/html
+              <Directory /var/www/html>
+                  Options Indexes FollowSymLinks
+                  AllowOverride All
+                  Require all granted
+              </Directory>
+          </VirtualHost>
+      notify: reload apache2
+
+    - name: Configure Nginx reverse proxy
+      copy:
+        dest: /etc/nginx/sites-available/reverse-proxy.conf
+        content: |
+          server {
+              listen 80;
+
+              location / {
+                  proxy_pass http://3.111.29.163:8080;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+      notify: reload nginx
+
+    - name: Enable Nginx reverse proxy configuration
+      file:
+        src: /etc/nginx/sites-available/reverse-proxy.conf
+        dest: /etc/nginx/sites-enabled/reverse-proxy.conf
+        state: link
+      notify: reload nginx1
+
+  handlers:
+    - name: reload apache2
+      ansible.builtin.service:
+        name: apache2
+        state: reloaded
+
+    - name: reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+
+    - name: reload nginx
+      ansible.builtin.service:
+        name: nginx1
+        state: reloaded
+
